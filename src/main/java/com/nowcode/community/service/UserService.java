@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.mail.search.SearchTerm;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -168,8 +169,14 @@ public class UserService implements CommunityConstant {
         return map;
     }
 
+    // 退出
     public void logout(String ticket) {
         loginTicketMapper.updateStatus(ticket, 1);
+    }
+
+    // 查找登录凭证
+    public LoginTicker findLoginTicket(String ticket){
+        return loginTicketMapper.selectByTicket(ticket);
     }
 
 }
