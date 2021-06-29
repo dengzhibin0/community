@@ -14,7 +14,9 @@ import java.util.List;
 public interface CommentMapper {
     List<Comment> selectCommentsByEntity(int entityType, int entityId, int offset, int limit);
 
+    // 通过评论类型统计数量
     int selectCountByEntity(int entityType, int entityId);
 
+    // 增加评论
     int insertComment(Comment comment);
 }
