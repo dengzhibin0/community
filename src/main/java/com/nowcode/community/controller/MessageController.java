@@ -5,6 +5,7 @@ import com.nowcode.community.entity.Page;
 import com.nowcode.community.entity.User;
 import com.nowcode.community.service.MessageService;
 import com.nowcode.community.service.UserService;
+import com.nowcode.community.util.CommunityUtil;
 import com.nowcode.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,11 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author 邓志斌
@@ -38,6 +37,7 @@ public class MessageController {
     // 私信列表
     @RequestMapping(path = "/letter/list", method = RequestMethod.GET)
     public String getLetterList(Model model, Page page) {
+//        int i=10/0;
         User user = hostHolder.getUser();
         // 分页信息
         page.setLimit(5);
@@ -48,21 +48,21 @@ public class MessageController {
         List<Message> convetrsationList = messageService.findConversations(
                 user.getId(), page.getOffset(), page.getLimit());
 
-        List<Map<String,Object>> conversations=new ArrayList<>();
+        List<Map<String, Object>> conversations = new ArrayList<>();
 
-        if(convetrsationList!=null){
+        if (convetrsationList != null) {
             for (Message message : convetrsationList) {
-                Map<String,Object> map=new HashMap<>();
-                map.put("conversation",message);
-                map.put("letterCount",messageService.findLetterCount(message.getConversationId()));
-                map.put("unreadCount",messageService.findLetterUnreadCount(user.getId(),message.getConversationId()));
-                int targetId=user.getId()==message.getFromId()?message.getToId():message.getFromId();
-                map.put("target",userService.findUserById(targetId));
+                Map<String, Object> map = new HashMap<>();
+                map.put("conversation", message);
+                map.put("letterCount", messageService.findLetterCount(message.getConversationId()));
+                map.put("unreadCount", messageService.findLetterUnreadCount(user.getId(), message.getConversationId()));
+                int targetId = user.getId() == message.getFromId() ? message.getToId() : message.getFromId();
+                map.put("target", userService.findUserById(targetId));
                 conversations.add(map);
             }
         }
 
-        model.addAttribute("conversations",conversations);
+        model.addAttribute("conversations", conversations);
 
         // 查询未读消息数量
         int letterUnreadCount = messageService.findLetterUnreadCount(user.getId(), null);
@@ -70,7 +70,6 @@ public class MessageController {
 
         return "/site/letter";
     }
-
 
     @RequestMapping(path = "/letter/detail/{conversationId}", method = RequestMethod.GET)
     public String getLetterDetail(@PathVariable("conversationId") String conversationId, Page page, Model model) {
@@ -95,6 +94,12 @@ public class MessageController {
         // 私信目标
         model.addAttribute("target", getLetterTarget(conversationId));
 
+        // 将消息设置为已读
+        List<Integer> ids=getLetterIds(letterList);
+        if(!ids.isEmpty()){
+            messageService.readMessage(ids);
+        }
+
         return "/site/letter-detail";
     }
 
@@ -110,4 +115,43 @@ public class MessageController {
         }
     }
 
+    // 得到未读消息的id
+    private List<Integer> getLetterIds(List<Message> letterList){
+        List<Integer> ids=new ArrayList<>();
+
+        if(letterList!=null){
+            for (Message message : letterList) {
+                // 当前是接收者的身份，并且当前消息未读
+                if(hostHolder.getUser().getId()==message.getToId()&&message.getStatus()==0){
+                    ids.add(message.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
+
+    @RequestMapping(path = "/letter/send", method = RequestMethod.POST)
+    @ResponseBody
+    public String sendLetter(String toName, String content) {
+        int i=10/0;
+        User target = userService.findUserByName(toName);
+        if (target == null) {
+            return CommunityUtil.getJSONString(1, "目标用户不存在!");
+        }
+
+        Message message = new Message();
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        if (message.getFromId() < message.getToId()) {
+            message.setConversationId(message.getFromId() + "_" + message.getToId());
+        } else {
+            message.setConversationId(message.getToId() + "_" + message.getFromId());
+        }
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        messageService.addMessage(message);
+
+        return CommunityUtil.getJSONString(0);
+    }
 }
