@@ -1,13 +1,10 @@
 package com.nowcode.community.controller.interceptor;
 
-import com.nowcode.community.entity.LoginTicker;
+import com.nowcode.community.entity.LoginTicket;
 import com.nowcode.community.entity.User;
 import com.nowcode.community.service.UserService;
 import com.nowcode.community.util.CookieUtil;
 import com.nowcode.community.util.HostHolder;
-import org.omg.PortableInterceptor.Interceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -40,11 +37,11 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
 
         if(ticket!=null){
             // 查询凭证
-            LoginTicker loginTicker=userService.findLoginTicket(ticket);
+            LoginTicket loginTicket =userService.findLoginTicket(ticket);
             // 检查凭证是否有效
-            if(loginTicker!=null&&loginTicker.getStatus()==0&&loginTicker.getExpired().after(new Date())){
+            if(loginTicket !=null&& loginTicket.getStatus()==0&& loginTicket.getExpired().after(new Date())){
                 // 根据凭证查询用户
-                User user=userService.findUserById(loginTicker.getUserId());
+                User user=userService.findUserById(loginTicket.getUserId());
 
                 // 在本次请求持有用户，要满足多线程
                 hostHolder.setUser(user);

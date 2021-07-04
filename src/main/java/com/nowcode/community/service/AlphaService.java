@@ -40,17 +40,17 @@ public class AlphaService {
     private TransactionTemplate transactionTemplate;
 
     public AlphaService(){
-        System.out.println("实例化AlphaService");
+//        System.out.println("实例化AlphaService");
     }
 
     @PostConstruct
     public void init(){
-        System.out.println("初始化AlphaService");
+//        System.out.println("初始化AlphaService");
     }
 
     @PreDestroy
     public void destory(){
-        System.out.println("销毁AlphaService");
+//        System.out.println("销毁AlphaService");
     }
 
     public String find(){

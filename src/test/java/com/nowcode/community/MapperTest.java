@@ -4,7 +4,7 @@ import com.nowcode.community.dao.DiscussPostMapper;
 import com.nowcode.community.dao.LoginTicketMapper;
 import com.nowcode.community.dao.UserMapper;
 import com.nowcode.community.entity.DiscussPost;
-import com.nowcode.community.entity.LoginTicker;
+import com.nowcode.community.entity.LoginTicket;
 import com.nowcode.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class MapperTest {
 
     @Test
     public void testInsertLoginTicket() {
-        LoginTicker loginTicket = new LoginTicker();
+        LoginTicket loginTicket = new LoginTicket();
         loginTicket.setUserId(101);
         loginTicket.setTicket("abc");
         loginTicket.setStatus(0);
@@ -65,7 +65,7 @@ public class MapperTest {
 
     @Test
     public void testSelectLoginTicket() {
-        LoginTicker loginTicket = loginTicketMapper.selectByTicket("abc");
+        LoginTicket loginTicket = loginTicketMapper.selectByTicket("abc");
         System.out.println(loginTicket);
 
         loginTicketMapper.updateStatus("abc", 1);

@@ -8,7 +8,7 @@ import java.util.Date;
  * @date 2021/6/23 19:46
  * 登录凭证
  */
-public class LoginTicker {
+public class LoginTicket {
     private int id;
     private int userId;
     private String ticket;
