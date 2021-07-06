@@ -37,6 +37,13 @@ public class ServiceLogAspect {
 
         // 获取用户ip地址
         ServletRequestAttributes attributes=(ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+
+        // 如果是消费者调用service
+        if(attributes==null){
+            // TODO 自行处理
+            return;
+        }
+
         HttpServletRequest request=attributes.getRequest();
         String ip=request.getRemoteHost();
 

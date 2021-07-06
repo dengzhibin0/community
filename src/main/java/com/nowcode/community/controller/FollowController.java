@@ -1,7 +1,7 @@
 package com.nowcode.community.controller;
 
-import com.nowcode.community.entity.Page;
-import com.nowcode.community.entity.User;
+import com.nowcode.community.entity.*;
+import com.nowcode.community.event.EventProducer;
 import com.nowcode.community.service.FollowService;
 import com.nowcode.community.service.UserService;
 import com.nowcode.community.util.CommunityConstant;
@@ -34,6 +34,9 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @RequestMapping(path = "/follow", method = RequestMethod.POST)
     @ResponseBody
     public String follow(int entityType, int entityId) {
@@ -41,6 +44,16 @@ public class FollowController implements CommunityConstant {
 
         //TODO 记得权限控制
         followService.follow(user.getId(), entityType, entityId);
+
+        // 触发关注事件
+        Event event=new Event()
+                .setTopic(TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())  // 谁关注的
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJSONString(0, "关注成功");
     }
@@ -75,10 +88,10 @@ public class FollowController implements CommunityConstant {
         if (userList != null) {
             for (Map<String, Object> map : userList) {
                 User u = (User) map.get("user");
-                map.put("hasFollowed",hasFollowed(u.getId()));
+                map.put("hasFollowed", hasFollowed(u.getId()));
             }
         }
-        model.addAttribute("users",userList);
+        model.addAttribute("users", userList);
 
 
         return "/site/followee";
@@ -96,25 +109,25 @@ public class FollowController implements CommunityConstant {
 
         page.setLimit(5);
         page.setPath("/followers/" + userId);
-        page.setRows((int) followService.findFollowerCount(ENTITY_TYPE_USER,userId));
+        page.setRows((int) followService.findFollowerCount(ENTITY_TYPE_USER, userId));
 
         List<Map<String, Object>> userList = followService.findFollowers(userId, page.getOffset(), page.getLimit());
         if (userList != null) {
             for (Map<String, Object> map : userList) {
                 User u = (User) map.get("user");
-                map.put("hasFollowed",hasFollowed(u.getId()));
+                map.put("hasFollowed", hasFollowed(u.getId()));
             }
         }
-        model.addAttribute("users",userList);
+        model.addAttribute("users", userList);
         return "/site/follower";
     }
 
 
     // 判断当前用户对某个用户的关注状态
-    private boolean hasFollowed(int userId){
-        if(hostHolder.getUser()==null){
+    private boolean hasFollowed(int userId) {
+        if (hostHolder.getUser() == null) {
             return false;
         }
-        return followService.hasFollowed(hostHolder.getUser().getId(),ENTITY_TYPE_USER,userId);
+        return followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
     }
 }

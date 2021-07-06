@@ -1,7 +1,12 @@
 package com.nowcode.community.controller;
 
+import com.nowcode.community.entity.Comment;
+import com.nowcode.community.entity.DiscussPost;
+import com.nowcode.community.entity.Event;
 import com.nowcode.community.entity.User;
+import com.nowcode.community.event.EventProducer;
 import com.nowcode.community.service.LikeService;
+import com.nowcode.community.util.CommunityConstant;
 import com.nowcode.community.util.CommunityUtil;
 import com.nowcode.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +24,19 @@ import java.util.Map;
  * @date 2021/7/3 10:12
  */
 @Controller
-public class LikeController {
+public class LikeController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
     @Autowired
     private HostHolder hostHolder;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @RequestMapping(path = "/like", method = RequestMethod.POST)
     @ResponseBody
-    public String like(int entityType, int entityId,int entityUserId) {
+    public String like(int entityType, int entityId,int entityUserId,int postId) {
         User user = hostHolder.getUser();
 
         // 点赞
@@ -43,6 +51,20 @@ public class LikeController {
         Map<String, Object> map = new HashMap<>();
         map.put("likeCount", likeCount);
         map.put("likeStatus", likeStatus);
+
+        // 触发点赞事件，点赞才触发
+        if(likeStatus==1){
+            Event event=new Event()
+                    .setTopic(TOPIC_LIKE)
+                    .setUserId(hostHolder.getUser().getId())  //谁点的赞
+                    .setEntityType(entityType)
+                    .setEntityId(entityId)
+                    .setEntityUserId(entityUserId)
+                    .setData("postId",postId);
+
+            eventProducer.fireEvent(event);
+        }
+
         return CommunityUtil.getJSONString(0, null, map);
     }
 }
